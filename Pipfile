@@ -5,11 +5,12 @@ name = "pypi"
 
 [packages]
 fastapi = "*"
+sqlalchemy = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+python-dotenv = "*"
+pymysql = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
-
-[packages.uvicorn]
-extras = [ "standard",]
