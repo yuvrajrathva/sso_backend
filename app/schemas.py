@@ -11,15 +11,9 @@ class UserSchema(BaseModel):
     mobile_no: Optional[int] = None 
     is_verified: bool
 
-    class Config:
-        orm_mode = True
-
 
 class ServiceProviderSchema(BaseModel):
     client_id: str
     name: str
     redirect_url: str
     redirect_url: str
-
-    class Config:
-        orm_mode = True
