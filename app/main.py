@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from typing import List
+from functools import lru_cache
 from app.models import User, ServiceProvider
 from app.schemas import UserSchema, ServiceProviderSchema
 from app.database import SessionLocal, engine, Base
 from app.crud import create_user, get_all_users, get_user_by_roll_no
+from app.config import Settings
 
 
 Base.metadata.create_all(bind=engine)
@@ -17,6 +19,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@lru_cache
+def get_settings():
+    return Settings()
 
 
 @app.get("/", response_model=List[UserSchema])
