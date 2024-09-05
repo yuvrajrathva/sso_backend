@@ -8,7 +8,7 @@ class UserSchema(BaseModel):
     last_name: str
     email: str
     password: str
-    mobile_no: Optional[int] = None 
+    phone_number: str
     is_verified: bool
 
 

@@ -7,11 +7,19 @@ from app.utils import hash_password
 
 def create_user(db: Session, user: UserSchema):
     hashed_password = hash_password(user.password)
-    db_user = User(roll_no=user.roll_no, first_name=user.first_name, last_name=user.last_name, email=user.email, password=hashed_password, mobile_no=user.mobile_no, is_verified=user.is_verified)
-    db.add(db_user)
+    user = User(roll_no=user.roll_no, first_name=user.first_name, last_name=user.last_name, email=user.email, password=hashed_password, phone_number=user.phone_number, is_verified=user.is_verified)
+
+    try:
+        user.validate_email()
+        user.validate_phone_number()
+        user.validate_password()
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    db.add(user)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(user)
+    return user
 
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100):
