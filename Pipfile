@@ -4,11 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
 sqlalchemy = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 python-dotenv = "*"
 pymysql = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
+pyjwt = "*"
+fastapi = {extras = ["all"], version = "*"}
+pydantic-settings = "*"
 
 [dev-packages]
 
