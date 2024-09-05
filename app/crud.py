@@ -13,8 +13,6 @@ def create_user(db: Session, user: UserSchema):
     db.refresh(db_user)
     return db_user
 
-def get_user_by_roll_no(db: Session, roll_no: int):
-    return db.query(User).filter(User.roll_no == roll_no).first()
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()

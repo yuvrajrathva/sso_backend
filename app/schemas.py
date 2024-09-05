@@ -17,3 +17,9 @@ class ServiceProviderSchema(BaseModel):
     name: str
     redirect_url: str
     redirect_url: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    
