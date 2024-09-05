@@ -5,10 +5,10 @@ import re
 class User(Base):
     __tablename__ = "users"
 
-    roll_no = Column(String(11), primary_key=True, index=True)
+    roll_no = Column(String(11), unique=True)
     first_name = Column(String(20))
     last_name = Column(String(20))
-    email = Column(String(50), unique=True)
+    email = Column(String(50), primary_key=True, index=True)
     password = Column(String(100))
     phone_number = Column(String(10))
     is_verified = Column(Boolean)
