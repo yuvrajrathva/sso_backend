@@ -12,6 +12,10 @@ pydantic-settings = "*"
 itsdangerous = "*"
 fastapi-mail = "*"
 requests = "*"
+httpx = "*"
+pytest = "*"
+alembic = "*"
+sib-api-v3-sdk = "*"
 
 [dev-packages]
 

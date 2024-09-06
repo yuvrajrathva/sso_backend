@@ -1,3 +1,5 @@
+from __future__ import print_function
+import time
 from fastapi import FastAPI, HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from typing import List
@@ -5,9 +7,15 @@ from functools import lru_cache
 from datetime import timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Annotated
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+from dotenv import load_dotenv
+import os
+import random
+from datetime import datetime
 
 from app.schemas import Token
-from app.models import User, ServiceProvider
+from app.models import User, ServiceProvider, VerificationCode
 from app.schemas import UserSchema, ServiceProviderSchema
 from app.database import SessionLocal, engine, Base
 from app.crud import create_user, get_all_users
@@ -16,8 +24,9 @@ from app.utils import authenticate_user, create_access_token, get_user
 
 
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
+
+load_dotenv()
 
 def get_db():
     db = SessionLocal()
@@ -61,3 +70,27 @@ async def login_endpoint(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+@app.post("/verify-otp/")
+def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
+    verification_code = db.query(VerificationCode).filter(
+        VerificationCode.email == email, 
+        VerificationCode.code == otp,
+        VerificationCode.is_verified == False
+    ).first()
+
+    if not verification_code:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification code.")
+    if verification_code.code_expiry < datetime.now():
+        raise HTTPException(status_code=400, detail="Verification code has expired.")
+
+    verification_code.is_verified = True
+    db.commit()
+
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        user.is_verified = True
+        db.commit()
+        return {"message": "Email verified successfully."}
+
+    raise HTTPException(status_code=400, detail="User not found.")

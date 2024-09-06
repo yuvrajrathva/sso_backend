@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from .database import Base
 import re
 
@@ -11,7 +11,7 @@ class User(Base):
     email = Column(String(50), primary_key=True, index=True)
     password = Column(String(100))
     phone_number = Column(String(10))
-    is_verified = Column(Boolean)
+    is_verified = Column(Boolean, default=False)
 
     def validate_email(self):
         if not re.match(r"[^@]+@[^@]+\.[^@]+", self.email) or not re.match(r"^[^@]+@iitj\.ac\.in$", self.email):
@@ -41,3 +41,13 @@ class ServiceProvider(Base):
     name = Column(String(100))
     redirect_url = Column(String(100))
     is_verified = Column(Boolean)
+
+
+class VerificationCode(Base):
+    __tablename__ = "verification_codes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String(50), ForeignKey("users.email"), nullable=False)
+    code = Column(String(6), nullable=False)
+    code_expiry = Column(DateTime, nullable=False)
+    is_verified = Column(Boolean, default=False)
