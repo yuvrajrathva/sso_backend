@@ -15,6 +15,7 @@ pydantic-settings = "*"
 httpx = "*"
 pytest = "*"
 alembic = "*"
+cryptography = "*"
 
 [dev-packages]
 
