@@ -5,15 +5,27 @@ name = "pypi"
 
 [packages]
 sqlalchemy = "*"
-uvicorn = {extras = ["standard"], version = "*"}
 python-dotenv = "*"
 pymysql = "*"
-passlib = {extras = ["bcrypt"], version = "*"}
 pyjwt = "*"
-fastapi = {extras = ["all"], version = "*"}
 pydantic-settings = "*"
+itsdangerous = "*"
+fastapi-mail = "*"
+requests = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
+
+[packages.uvicorn]
+extras = [ "standard",]
+version = "*"
+
+[packages.passlib]
+extras = [ "bcrypt",]
+version = "*"
+
+[packages.fastapi]
+extras = [ "all",]
+version = "*"
