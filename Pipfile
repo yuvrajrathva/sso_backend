@@ -12,6 +12,9 @@ passlib = {extras = ["bcrypt"], version = "*"}
 pyjwt = "*"
 fastapi = {extras = ["all"], version = "*"}
 pydantic-settings = "*"
+httpx = "*"
+pytest = "*"
+alembic = "*"
 
 [dev-packages]
 
