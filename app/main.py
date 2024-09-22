@@ -1,6 +1,7 @@
 from __future__ import print_function
 import time
 from fastapi import FastAPI, HTTPException, status, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
 from functools import lru_cache
@@ -25,6 +26,19 @@ from app.utils import authenticate_user, create_access_token, get_user
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 load_dotenv()
 
@@ -54,7 +68,7 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
     return user
 
 
-@app.post("/token")
+@app.post("/login/")
 async def login_endpoint(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)
 ) -> Token:
