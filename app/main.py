@@ -17,7 +17,7 @@ from datetime import datetime
 
 from app.schemas import Token
 from app.models import User, ServiceProvider, VerificationCode
-from app.schemas import UserSchema, ServiceProviderSchema
+from app.schemas import UserSchema, ServiceProviderSchema, VerifyCode
 from app.database import SessionLocal, engine, Base
 from app.crud import create_user, get_all_users
 from app.config import Settings
@@ -85,11 +85,11 @@ async def login_endpoint(
     )
     return Token(access_token=access_token, token_type="bearer")
 
-@app.post("/verify-otp/")
-def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
+@app.post("/verify-code/")
+def verify_code(user_code: VerifyCode, db: Session = Depends(get_db)):
     verification_code = db.query(VerificationCode).filter(
-        VerificationCode.email == email, 
-        VerificationCode.code == otp,
+        VerificationCode.email == user_code.email, 
+        VerificationCode.code == user_code.code,
         VerificationCode.is_verified == False
     ).first()
 
@@ -101,7 +101,7 @@ def verify_otp(email: str, otp: str, db: Session = Depends(get_db)):
     verification_code.is_verified = True
     db.commit()
 
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(User.email == user_code.email).first()
     if user:
         user.is_verified = True
         db.commit()

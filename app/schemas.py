@@ -21,4 +21,7 @@ class ServiceProviderSchema(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    
+
+class VerifyCode(BaseModel):
+    email: str
+    code: str

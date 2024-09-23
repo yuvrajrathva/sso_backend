@@ -17,7 +17,7 @@ def generate_verification_code():
         verification_code += str(random.randint(0,9))
     return verification_code
 
-def send_verification_code(email: str, otp: str):
+def send_verification_code(email: str, code: str):
     configuration = sib_api_v3_sdk.Configuration()
     configuration.api_key["api-key"] = os.getenv("BREVO_API_KEY")
     api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
@@ -25,7 +25,7 @@ def send_verification_code(email: str, otp: str):
     sender= {"name": "IITJ SSO", "email": "rathva.1@iitj.ac.in"}
     subject = "Verification code for IIT SSO"
     to = [{"email":email,"name":"New SSO User"}]
-    html_content = f"<h1>Your verification code is: {otp}</h1>"
+    html_content = f"<h1>Your verification code is: {code}</h1>"
     reply_to = {"email":os.getenv("EMAIL"),"name":"SSO IITJ"}
     
     send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=to, reply_to=reply_to, html_content=html_content, sender=sender, subject=subject)
