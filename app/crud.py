@@ -63,6 +63,24 @@ def create_user(db: Session, user: UserSchema):
 
     return user
 
+def resend_verification_code(db: Session, email: str):
+    user = User(email= email)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    verification_code = generate_verification_code()
+    verification_code = VerificationCode(email=email, code=verification_code, code_expiry=datetime.now() + timedelta(minutes=15), is_verified=False)
+    db.add(verification_code)
+    db.commit()
+
+    send_verification_code(email, verification_code.code)
+
+    return user
 
 def get_all_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(User).offset(skip).limit(limit).all()

@@ -25,3 +25,6 @@ class Token(BaseModel):
 class VerifyCode(BaseModel):
     email: str
     code: str
+
+class ResendCode(BaseModel):
+    email: str
