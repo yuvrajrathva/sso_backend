@@ -41,7 +41,7 @@ def send_verification_code(email: str, otp: str):
 
 def create_user(db: Session, user: UserSchema):
     hashed_password = hash_password(user.password)
-    user = User(roll_no=user.roll_no, first_name=user.first_name, last_name=user.last_name, email=user.email, password=hashed_password, phone_number=user.phone_number, is_verified=user.is_verified)
+    user = User(roll_no=user.roll_no, first_name=user.first_name, last_name=user.last_name, email=user.email, password=hashed_password, phone_number=user.phone_number, is_verified=False)
 
     try:
         user.validate_email()

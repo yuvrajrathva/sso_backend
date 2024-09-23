@@ -9,7 +9,6 @@ class UserSchema(BaseModel):
     email: str
     password: str
     phone_number: str
-    is_verified: bool
 
 
 class ServiceProviderSchema(BaseModel):
