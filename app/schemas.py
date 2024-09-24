@@ -9,7 +9,6 @@ class UserSchema(BaseModel):
     email: str
     password: str
     phone_number: str
-    is_verified: bool
 
 
 class ServiceProviderSchema(BaseModel):
@@ -22,4 +21,10 @@ class ServiceProviderSchema(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-    
+
+class VerifyCode(BaseModel):
+    email: str
+    code: str
+
+class ResendCode(BaseModel):
+    email: str

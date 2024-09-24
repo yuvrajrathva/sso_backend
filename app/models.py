@@ -14,12 +14,14 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
 
     def validate_email(self):
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", self.email) or not re.match(r"^[^@]+@iitj\.ac\.in$", self.email):
+        if not re.match(r"^[^@]+@iitj\.ac\.in$", self.email):
             raise ValueError("Invalid email format")
+        return True
     
     def validate_phone_number(self):
         if not re.match(r"^[6-9]\d{9}$", self.phone_number):
             raise ValueError("Invalid phone number format")
+        return True
 
     def validate_password(self):
         if len(self.password) < 8:
@@ -32,6 +34,7 @@ class User(Base):
             raise ValueError("Password must contain at least one lowercase letter")
         if not any(not char.isalnum() for char in self.password):
             raise ValueError("Password must contain at least one special charater")
+        return True
 
 
 class ServiceProvider(Base):
