@@ -19,7 +19,7 @@ class User(Base):
         return True
     
     def validate_phone_number(self):
-        if not re.match(r"^\+?1?\d{9,15}$", self.phone_number):
+        if not re.match(r"^[6-9]\d{9}$", self.phone_number):
             raise ValueError("Invalid phone number format")
         return True
 
