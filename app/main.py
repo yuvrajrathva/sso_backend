@@ -5,7 +5,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 from app.database import engine, Base
 from app.config import Settings
-from app.router import user
+from app.router import user, service_provider
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -30,5 +30,6 @@ def get_settings():
     return Settings()
 
 app.include_router(user.router, prefix="/user", tags=["user"])
+app.include_router(service_provider.router, prefix="/service-provider", tags=["service-provider"])
 
 
