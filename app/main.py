@@ -62,7 +62,7 @@ def read_users_endpoint(skip: int = 0, limit: int = 100, db: Session = Depends(g
 
 @app.post("/signup/")
 def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
-    db_user = get_user(db, user.email)
+    db_user = db.query(User).filter((User.email == user.email) | (User.roll_no == user.roll_no)).first()
     if db_user:
         raise HTTPException(status_code=400, detail='User already registered')
     user = create_user(db, user)
