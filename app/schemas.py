@@ -12,7 +12,6 @@ class UserSchema(BaseModel):
 
 
 class ServiceProviderSchema(BaseModel):
-    client_id: str
     name: str
     redirect_url: str
     

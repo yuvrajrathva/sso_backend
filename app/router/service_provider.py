@@ -25,7 +25,7 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
     ).first()
     if db_service_provider:
         raise HTTPException(status_code=400, detail='Service Provider already registered')
-    db_service_provider = ServiceProvider(**service_provider.dict())
+    db_service_provider = ServiceProvider(**service_provider.dict(), session=db)
     db.add(db_service_provider)
     db.commit()
     db.refresh(db_service_provider)

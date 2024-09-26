@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from .database import Base
 import re
+from uuid import uuid4
 
 class User(Base):
     __tablename__ = "users"
@@ -43,7 +44,18 @@ class ServiceProvider(Base):
     client_id = Column(String(50), primary_key=True, index=True)
     name = Column(String(100))
     redirect_url = Column(String(100))
-    is_verified = Column(Boolean)
+    is_verified = Column(Boolean, default=False)
+
+    def __init__(self, session=None, **kwargs):
+        super().__init__(**kwargs)
+        if not self.client_id:
+            self.client_id = str(uuid4())
+            
+            # Use a session to query the database
+            session = kwargs.get('session')
+            if session:
+                while session.query(self.__class__).filter_by(client_id=self.client_id).first() is not None:
+                    self.client_id = str(uuid4())
 
 
 class VerificationCode(Base):
