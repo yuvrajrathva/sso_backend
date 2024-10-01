@@ -12,19 +12,19 @@ class UserSchema(BaseModel):
 
 
 class ServiceProviderSchema(BaseModel):
-    client_id: str
     name: str
     redirect_url: str
-    redirect_url: str
-
+    
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class VerifyCode(BaseModel):
     email: str
     code: str
+
 
 class ResendCode(BaseModel):
     email: str
