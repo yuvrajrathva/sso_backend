@@ -15,10 +15,17 @@ class ServiceProviderSchema(BaseModel):
     name: str
     redirect_url: str
     
+class LoginSchema(BaseModel):
+    email: str
+    password: str
+    redirect_uri: str
+    response_type: str
+
 
 class Token(BaseModel):
     access_token: str
     token_type: str
+    redirect_uri: str
 
 
 class VerifyCode(BaseModel):

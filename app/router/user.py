@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 from app.database import SessionLocal
 from app.schemas import Token
 from app.models import User, VerificationCode
-from app.schemas import UserSchema, VerifyCode, ResendCode
+from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
 from app.utils import authenticate_user, create_access_token
@@ -42,9 +42,9 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
 
 @router.post("/login/")
 async def login_endpoint(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)
+    form_data: LoginSchema, db: Session = Depends(get_db)
 ) -> Token:
-    user = authenticate_user(db, form_data.username, form_data.password)
+    user = authenticate_user(db, form_data.email, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -55,7 +55,7 @@ async def login_endpoint(
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
-    return Token(access_token=access_token, token_type="bearer")
+    return Token(access_token=access_token, token_type="bearer", redirect_uri=form_data.redirect_uri)
 
 
 @router.post("/verify-code/")
