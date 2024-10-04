@@ -7,6 +7,7 @@ from app.models import ServiceProvider
 from app.schemas import ServiceProviderSchema
 from app.config import Settings
 from app.router.user import get_db
+from app.utils import generate_authorization_code
 
 router = APIRouter()
 
@@ -30,3 +31,23 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
     db.commit()
     db.refresh(db_service_provider)
     return db_service_provider
+
+
+@router.get("/authorize/")
+def authorize_service_provider(response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, db: Session = Depends(get_db)):
+    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
+    if not service_provider:
+        raise HTTPException(status_code=400, detail='Invalid client_id')
+
+    if response_type != 'code':
+        raise HTTPException(status_code=400, detail='Unsupported response_type')
+
+    # Assuming you have a function to generate authorization code
+    authorization_code = generate_authorization_code(client_id, redirect_uri, scope, state)
+
+    if service_provider.redirect_url != redirect_uri:
+        raise HTTPException(status_code=400, detail='Invalid redirect_uri')
+
+    # Redirect to the redirect_uri with the authorization code
+    redirect_url = f"{redirect_uri}?code={authorization_code}&state={state}"
+    return {"redirect_url": redirect_url}
