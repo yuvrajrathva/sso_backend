@@ -8,6 +8,7 @@ from app.schemas import ServiceProviderSchema
 from app.config import Settings
 from app.router.user import get_db
 from app.utils import generate_authorization_code
+from fastapi.responses import RedirectResponse
 
 router = APIRouter()
 
@@ -42,7 +43,6 @@ def authorize_service_provider(response_type: str, scope: str, client_id: str, s
     if response_type != 'code':
         raise HTTPException(status_code=400, detail='Unsupported response_type')
 
-    # Assuming you have a function to generate authorization code
     authorization_code = generate_authorization_code(client_id, redirect_uri, scope, state)
 
     if service_provider.redirect_url != redirect_uri:
@@ -50,4 +50,4 @@ def authorize_service_provider(response_type: str, scope: str, client_id: str, s
 
     # Redirect to the redirect_uri with the authorization code
     redirect_url = f"{redirect_uri}?code={authorization_code}&state={state}"
-    return {"redirect_url": redirect_url}
+    return RedirectResponse(url=redirect_url, status_code=302)
