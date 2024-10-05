@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from typing import List
+from urllib.parse import quote
 
 from app.models import ServiceProvider
 from app.schemas import ServiceProviderSchema
 from app.config import Settings
 from app.router.user import get_db
-from app.utils import generate_authorization_code
+from app.utils import generate_authorization_code, verify_session
 from fastapi.responses import RedirectResponse
 
 router = APIRouter()
@@ -35,7 +36,12 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
 
 
 @router.get("/authorize/")
-def authorize_service_provider(response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, db: Session = Depends(get_db)):
+def authorize_service_provider(response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, request: Request, db: Session = Depends(get_db)):
+    session = verify_session(db, request)
+    if not session:
+        return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={redirect_uri}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope)}", status_code=303)
+    
+
     service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
     if not service_provider:
         raise HTTPException(status_code=400, detail='Invalid client_id')
