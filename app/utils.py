@@ -64,13 +64,22 @@ def generate_authorization_code(client_id: str, redirect_uri: str, scope: str, s
     return authorization_code
 
 
-"""verify that user has a valid session"""
-def get_auth_user(db, request: Request):
-    session_id = request.cookies.get("session_id")
-    if not session_id:
-        raise HTTPException(status_code=401)
+def create_session(db, email: str):
+    session_id = str(random.randint(100000, 999999))
+    session = UserSession(email=email, session_id=session_id, session_created=datetime.now(), session_expiry=datetime.now() + timedelta(minutes=15), last_activity=datetime.now())
+    db.add(session)
+    db.commit()
 
-    user_session = db.query(UserSession).filter(Session.session_id == session_id).first()
-    if not user_session or user_session.session_expiry < datetime.now() or not user_session.is_active:
-        raise HTTPException(status_code=403)
+    return session_id
+
+
+def verify_session(db, request):
+    if "session_id" in request.cookies:
+        user_session_id = request.cookies.get("session_id")
+    else:
+        return False
+    
+    session = db.query(UserSession).filter(UserSession.session_id == user_session_id).first()
+    if not session or session.session_expiry < datetime.now() or not session.is_active:
+        return False
     return True
