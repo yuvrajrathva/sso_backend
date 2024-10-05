@@ -8,6 +8,9 @@ from typing import Union
 from app.config import Settings
 from app.models import User, Session, ServiceProvider
 
+import random
+import string
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY=Settings().secret_key
@@ -55,6 +58,11 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def generate_authorization_code(client_id: str, redirect_uri: str, scope: str, state: str):
+    authorization_code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=15))
+    return authorization_code
+
 
 def create_session(db, email: str):
     session_id = str(random.randint(100000, 999999))

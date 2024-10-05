@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from .database import Base
 import re
-from uuid import uuid4
+import random
+import string
 
 class User(Base):
     __tablename__ = "users"
@@ -42,20 +43,30 @@ class ServiceProvider(Base):
     __tablename__ = "service_providers"
 
     client_id = Column(String(50), primary_key=True, index=True)
+    client_secret = Column(String(100), unique=True) 
     name = Column(String(100))
-    redirect_url = Column(String(100))
+    redirect_url = Column(String(200))
     is_verified = Column(Boolean, default=False)
 
     def __init__(self, session=None, **kwargs):
         super().__init__(**kwargs)
         if not self.client_id:
-            self.client_id = str(uuid4())
+            self.client_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
             
             # Use a session to query the database
             session = kwargs.get('session')
             if session:
                 while session.query(self.__class__).filter_by(client_id=self.client_id).first() is not None:
-                    self.client_id = str(uuid4())
+                    self.client_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
+
+        # generate a random client secret
+        if not self.client_secret:
+            self.client_secret = ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
+
+            session = kwargs.get('session')
+            if session:
+                while session.query(self.__class__).filter_by(client_secret=self.client_secret).first() is not None:
+                    self.client_secret = ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
 
 
 class VerificationCode(Base):
