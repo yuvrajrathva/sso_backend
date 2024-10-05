@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -10,11 +10,11 @@ from urllib.parse import quote
 
 from app.database import SessionLocal
 from app.schemas import Token
-from app.models import User, VerificationCode, Session
+from app.models import User, VerificationCode, UserSession
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
-from app.utils import authenticate_user, create_access_token, create_session
+from app.utils import authenticate_user, create_access_token, create_session, verify_session
 
 router = APIRouter()
 
@@ -42,6 +42,14 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
     return user
 
 
+@router.get("/check-session/")
+def check_session(request: Request, db: Session = Depends(get_db)):
+    session = verify_session(db, request)
+    if not session:
+        return RedirectResponse(f"{Settings().sso_client_url}/login", status_code=303)
+    return {"status": "active"}
+
+
 @router.post("/login/")
 def login_endpoint(
     form_data: LoginSchema, db: Session = Depends(get_db)
@@ -63,15 +71,15 @@ def login_endpoint(
     return response
 
 @router.post("/logout")
-def session_logout(response: Response, db: Session = Depends(get_db)):
+def session_logout(request: Request, db: Session = Depends(get_db)):
     session_id = request.cookies.get("session_id")
-    session = db.query(Session).filter(Session.session_id == session_id).first()
+    session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
     if session:
         session.session_expiry = datetime.now()
         session.last_activity = datetime.now()
         session.is_active = False
         db.commit()
-    response.delete_cookie("session_id")
+    # response.delete_cookie("session_id")
 
     return {"status": "logged out"}
 

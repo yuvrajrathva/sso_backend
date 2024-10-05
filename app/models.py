@@ -78,8 +78,8 @@ class VerificationCode(Base):
     code_expiry = Column(DateTime, nullable=False)
     is_verified = Column(Boolean, default=False)
 
-class Session(Base):
-    __tablename__ = "sessions"
+class UserSession(Base):
+    __tablename__ = "user_sessions"
 
     session_id = Column(String(6), primary_key=True, nullable=False)
     email = Column(String(50), ForeignKey("users.email"), nullable=False)
