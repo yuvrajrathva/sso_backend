@@ -66,3 +66,13 @@ class VerificationCode(Base):
     code = Column(String(6), nullable=False)
     code_expiry = Column(DateTime, nullable=False)
     is_verified = Column(Boolean, default=False)
+
+class Session(Base):
+    __tablename__ = "sessions"
+
+    session_id = Column(String(6), primary_key=True, nullable=False)
+    email = Column(String(50), ForeignKey("users.email"), nullable=False)
+    session_expiry = Column(DateTime, nullable=False)
+    last_activity = Column(DateTime, nullable=False)
+    session_created = Column(DateTime, nullable=False)
+    is_active = Column(Boolean, default=True)
