@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
+from fastapi.responses import RedirectResponse
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime, timedelta
 from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Annotated
+from urllib.parse import quote
 
 from app.database import SessionLocal
 from app.schemas import Token
-from app.models import User, VerificationCode
+from app.models import User, VerificationCode, Session
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
-from app.utils import authenticate_user, create_access_token
+from app.utils import authenticate_user, create_access_token, create_session
 
 router = APIRouter()
 
@@ -41,21 +43,37 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
 
 
 @router.post("/login/")
-async def login_endpoint(
+def login_endpoint(
     form_data: LoginSchema, db: Session = Depends(get_db)
 ) -> Token:
-    user = authenticate_user(db, form_data.email, form_data.password)
+    user = authenticate_user(db, form_data.email, form_data.password, form_data.client_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token_expires = timedelta(minutes=Settings().access_token_expire_minutes)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    return Token(access_token=access_token, token_type="bearer", redirect_uri=form_data.redirect_uri)
+    session_id = create_session(db, form_data.email)
+
+    redirect_url = f"{Settings().sso_client_url}/consent?response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope)}"
+
+    print("redirect_url:", redirect_url)
+    response = RedirectResponse(redirect_url, status_code=303)
+    response.set_cookie(key="session_id", value=session_id, httponly=True)
+    return response
+
+@router.post("/logout")
+def session_logout(response: Response, db: Session = Depends(get_db)):
+    session_id = request.cookies.get("session_id")
+    session = db.query(Session).filter(Session.session_id == session_id).first()
+    if session:
+        session.session_expiry = datetime.now()
+        session.last_activity = datetime.now()
+        session.is_active = False
+        db.commit()
+    response.delete_cookie("session_id")
+
+    return {"status": "logged out"}
 
 
 @router.post("/verify-code/")

@@ -20,6 +20,9 @@ class LoginSchema(BaseModel):
     password: str
     redirect_uri: str
     response_type: str
+    client_id: str
+    state: str
+    scope: str
 
 
 class Token(BaseModel):
