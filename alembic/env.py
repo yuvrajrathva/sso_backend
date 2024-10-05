@@ -7,7 +7,7 @@ from alembic import context
 
 from app.database import Base
 # This two won't be referenced, but *have* to be imported to populate `Base.metadata`
-from app.models import User, ServiceProvider
+from app.models import User, ServiceProvider, UserSession
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

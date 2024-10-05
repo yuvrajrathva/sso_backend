@@ -3,6 +3,7 @@ from .database import Base
 import re
 import random
 import string
+from datetime import datetime, timedelta
 
 class User(Base):
     __tablename__ = "users"
@@ -87,3 +88,12 @@ class UserSession(Base):
     last_activity = Column(DateTime, nullable=False)
     session_created = Column(DateTime, nullable=False)
     is_active = Column(Boolean, default=True)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if not self.session_id:
+            self.session_id = str(random.randint(100000, 999999))
+            self.session_created = datetime.now()
+            self.session_expiry = datetime.now() + timedelta(minutes=15)
+            self.last_activity = datetime.now()
+            self.is_active = True
