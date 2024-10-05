@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 from app.database import SessionLocal
 from app.schemas import Token
-from app.models import User, VerificationCode, UserSession
+from app.models import User, VerificationCode, UserSession, ServiceProvider
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
@@ -42,12 +42,27 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
     return user
 
 
-@router.get("/check-session/")
-def check_session(request: Request, db: Session = Depends(get_db)):
+@router.get("/authorize/")
+def authorize( response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, request: Request, db: Session = Depends(get_db)):
     session = verify_session(db, request)
     if not session:
-        return RedirectResponse(f"{Settings().sso_client_url}/login", status_code=303)
-    return {"status": "active"}
+        return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={redirect_uri}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope)}", status_code=303)
+    
+    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
+    if not service_provider:
+        raise HTTPException(status_code=400, detail='Invalid client_id')
+
+    if response_type != 'code':
+        raise HTTPException(status_code=400, detail='Unsupported response_type')
+
+    if service_provider.redirect_url != redirect_uri:
+        raise HTTPException(status_code=400, detail='Invalid redirect_uri')
+
+    redirect_url = f"{Settings().sso_client_url}/consent?response_type={response_type}&client_id={client_id}&state={state}&scope={quote(scope)}"
+
+    response = RedirectResponse(redirect_url, status_code=302)
+
+    return response
 
 
 @router.post("/login/")
