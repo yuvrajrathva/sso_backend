@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Request, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -42,8 +42,16 @@ def create_user_endpoint(user:UserSchema, db:Session=Depends(get_db)):
     return user
 
 
-@router.get("/authorize/")
-def authorize( response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, request: Request, db: Session = Depends(get_db)):
+@router.get("/verify-session/")
+async def session_verification(
+    response_type: str = Query(...),
+    scope: str = Query(...),
+    client_id: str = Query(...),
+    state: str = Query(...),
+    redirect_uri: str = Query(...),
+    request: Request = Request,
+    db: Session = Depends(get_db)
+):   
     session = verify_session(db, request)
     if not session:
         return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={redirect_uri}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope)}", status_code=303)
