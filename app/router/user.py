@@ -10,11 +10,11 @@ from urllib.parse import quote
 
 from app.database import SessionLocal
 from app.schemas import Token
-from app.models import User, VerificationCode, Session
+from app.models import User, VerificationCode, UserSession
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
-from app.utils import authenticate_user, create_access_token, create_session
+from app.utils import authenticate_user, create_access_token
 
 router = APIRouter()
 
@@ -53,23 +53,25 @@ def login_endpoint(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    session_id = create_session(db, form_data.email)
+    user_session = UserSession(email=user.email)
+    db.add(user_session)
+    db.commit()
 
     redirect_url = f"{Settings().sso_client_url}/consent?response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope)}"
 
     print("redirect_url:", redirect_url)
     response = RedirectResponse(redirect_url, status_code=303)
-    response.set_cookie(key="session_id", value=session_id, httponly=True)
+    response.set_cookie(key="session_id", value=user_session.session_id, httponly=True)
     return response
 
 @router.post("/logout")
 def session_logout(response: Response, db: Session = Depends(get_db)):
     session_id = request.cookies.get("session_id")
-    session = db.query(Session).filter(Session.session_id == session_id).first()
+    user_session = db.query(UserSession).filter(Session.session_id == session_id).first()
     if session:
-        session.session_expiry = datetime.now()
-        session.last_activity = datetime.now()
-        session.is_active = False
+        user_session.session_expiry = datetime.now()
+        user_session.last_activity = datetime.now()
+        user_session.is_active = False
         db.commit()
     response.delete_cookie("session_id")
 

@@ -6,7 +6,7 @@ from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta
 from typing import Union
 from app.config import Settings
-from app.models import User, Session, ServiceProvider
+from app.models import User, UserSession, ServiceProvider
 
 import random
 import string
@@ -64,22 +64,13 @@ def generate_authorization_code(client_id: str, redirect_uri: str, scope: str, s
     return authorization_code
 
 
-def create_session(db, email: str):
-    session_id = str(random.randint(100000, 999999))
-    session = Session(email=email, session_id=session_id, session_created=datetime.now(), session_expiry=datetime.now() + timedelta(minutes=15), last_activity=datetime.now())
-    db.add(session)
-    db.commit()
-
-    return session_id
-
-
 """verify that user has a valid session"""
-def get_auth_user(request: Request):
+def get_auth_user(db, request: Request):
     session_id = request.cookies.get("session_id")
     if not session_id:
         raise HTTPException(status_code=401)
 
-    session = db.query(Session).filter(Session.session_id == session_id).first()
-    if not session or session.session_expiry < datetime.now() or not session.is_active:
+    user_session = db.query(UserSession).filter(Session.session_id == session_id).first()
+    if not user_session or user_session.session_expiry < datetime.now() or not user_session.is_active:
         raise HTTPException(status_code=403)
     return True
