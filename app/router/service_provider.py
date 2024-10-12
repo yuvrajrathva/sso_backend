@@ -5,11 +5,11 @@ from typing import List
 from urllib.parse import quote
 
 from app.models import ServiceProvider
-from app.schemas import ServiceProviderSchema
+from app.schemas import ServiceProviderSchema, SessionSchema
 from app.config import Settings
 from app.router.user import get_db
 from app.utils import generate_authorization_code, verify_session
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
 
 router = APIRouter()
 
@@ -35,36 +35,37 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
     return db_service_provider
 
 
-@router.get("/authorize/")
-def authorize_service_provider(
-    response_type: str = Query(...),
-    scope: str = Query(...),
-    client_id: str = Query(...),
-    state: str = Query(...),
-    redirect_uri: str = Query(...),
-    request: Request = Request,
-    db: Session = Depends(get_db)
-):
+@router.post("/authorize/")
+def authorize_service_provider(form_data: SessionSchema, request: Request = Request, db: Session = Depends(get_db)):
     session = verify_session(db, request)
     if not session:
-        redirect_uri = f"{Settings().sso_client_url}/login?redirect_uri={quote(redirect_uri, safe='')}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope, safe='')}"
+        redirect_uri = f"{Settings().sso_client_url}/login?redirect_uri={quote(redirect_uri, safe='')}"
+        redirect_uri += f"&client_id={form_data.client_id}&response_type={form_data.response_type}&state={form_data.state}&scope={quote(form_data.scope, safe='')}"
+        
         print("Session not Valid. Redirecting to:", redirect_uri)
         return RedirectResponse(redirect_uri, status_code=303)
     
 
-    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
+    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == form_data.client_id).first()
     if not service_provider:
         raise HTTPException(status_code=400, detail='Invalid client_id')
 
-    if response_type != 'code':
+    if form_data.response_type != 'code':
         raise HTTPException(status_code=400, detail='Unsupported response_type')
 
-    authorization_code = generate_authorization_code(client_id, redirect_uri, scope, state)
+    authorization_code = generate_authorization_code(form_data.client_id, form_data.redirect_uri, form_data.scope, form_data.state)
 
-    if service_provider.redirect_url != redirect_uri:
+    if service_provider.redirect_url != form_data.redirect_uri:
         raise HTTPException(status_code=400, detail='Invalid redirect_uri')
 
-    # Redirect to the redirect_uri with the authorization code
-    redirect_url = f"{redirect_uri}?code={authorization_code}&state={state}"
-    print("Redirecting to:", redirect_url)
-    return RedirectResponse(url=redirect_url, status_code=303)
+    # # Redirect to the redirect_uri with the authorization code
+    # redirect_url = f"{form_data.redirect_uri}?code={authorization_code}&state={form_data.state}"
+    # print("Redirecting to:", redirect_url)
+    # return RedirectResponse(url=redirect_url, status_code=303)
+    response_message = {
+        'redirect_uri': form_data.redirect_uri,
+        'code': authorization_code,
+        'state': form_data.state
+    }
+    
+    return JSONResponse(content=response_message, status_code=200)

@@ -43,8 +43,8 @@ def authenticate_user(db, email: str, password: str, client_id: str):
         service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
         if not service_provider:
             return False
-        if not service_provider.is_verified:
-            return False            
+        # if not service_provider.is_verified:
+        #     return False            
     return user
 
 
