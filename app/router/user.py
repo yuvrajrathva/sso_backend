@@ -11,7 +11,7 @@ from urllib.parse import quote
 from app.database import SessionLocal
 from app.schemas import Token
 from app.models import User, VerificationCode, UserSession, ServiceProvider
-from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema, AuthorizeSchema
+from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
 from app.utils import authenticate_user, create_access_token, create_session, verify_session
@@ -54,19 +54,19 @@ async def session_verification(
 ):   
     session = verify_session(db, request)
     if not session:
-        return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={form_data.redirect_uri}&client_id={form_data.client_id}&response_type={form_data.response_type}&state={form_data.state}&scope={quote(form_data.scope)}", status_code=303)
+        return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_uri={quote(redirect_uri, safe='')}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope, safe='')}", status_code=303)
     
-    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == form_data.client_id).first()
+    service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
     if not service_provider:
         raise HTTPException(status_code=400, detail='Invalid client_id')
 
     if response_type != 'code':
         raise HTTPException(status_code=400, detail='Unsupported response_type')
 
-    if service_provider.redirect_url != form_data.redirect_uri:
+    if service_provider.redirect_url != redirect_uri:
         raise HTTPException(status_code=400, detail='Invalid redirect_uri')
 
-    redirect_url = f"{Settings().sso_client_url}/consent?response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope)}"
+    redirect_url = f"{Settings().sso_client_url}/consent?response_type={response_type}&client_id={client_id}&state={state}&scope={quote(scope, safe='')}"
 
     response = RedirectResponse(redirect_url, status_code=302)
 
@@ -88,11 +88,11 @@ def login_endpoint(
     db.add(user_session)
     db.commit()
 
-    redirect_url = f"{Settings().sso_client_url}/consent?response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope)}"
+    redirect_url = f"{Settings().sso_client_url}/consent?redirect_uri={quote(form_data.redirect_uri, safe='')}&response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope, safe='')}"
 
     print("redirect_url:", redirect_url)
     response = RedirectResponse(redirect_url, status_code=303)
-    response.set_cookie(key="session_id", value=user_session.session_id, httponly=True)
+    response.set_cookie(key="session_id", value=user_session.session_id, httponly=False)
     return response
 
 @router.post("/logout")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, Query
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from typing import List
@@ -36,10 +36,20 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
 
 
 @router.get("/authorize/")
-def authorize_service_provider(response_type: str, scope: str, client_id: str, state: str, redirect_uri: str, request: Request, db: Session = Depends(get_db)):
+def authorize_service_provider(
+    response_type: str = Query(...),
+    scope: str = Query(...),
+    client_id: str = Query(...),
+    state: str = Query(...),
+    redirect_uri: str = Query(...),
+    request: Request = Request,
+    db: Session = Depends(get_db)
+):
     session = verify_session(db, request)
     if not session:
-        return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={redirect_uri}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope)}", status_code=303)
+        redirect_uri = f"{Settings().sso_client_url}/login?redirect_uri={quote(redirect_uri, safe='')}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope, safe='')}"
+        print("Session not Valid. Redirecting to:", redirect_uri)
+        return RedirectResponse(redirect_uri, status_code=303)
     
 
     service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == client_id).first()
@@ -56,4 +66,5 @@ def authorize_service_provider(response_type: str, scope: str, client_id: str, s
 
     # Redirect to the redirect_uri with the authorization code
     redirect_url = f"{redirect_uri}?code={authorization_code}&state={state}"
-    return RedirectResponse(url=redirect_url, status_code=302)
+    print("Redirecting to:", redirect_url)
+    return RedirectResponse(url=redirect_url, status_code=303)

@@ -74,6 +74,7 @@ def create_session(db, email: str):
 
 
 def verify_session(db, request):
+    print("Cookies:", request.cookies)
     if "session_id" in request.cookies:
         user_session_id = request.cookies.get("session_id")
     else:
