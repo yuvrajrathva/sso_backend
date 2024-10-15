@@ -51,7 +51,7 @@ async def session_verification(
     redirect_uri: str = Query(...),
     request: Request = Request,
     db: Session = Depends(get_db)
-):   
+):
     session = verify_session(db, request)
     if not session:
         return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_uri={quote(redirect_uri, safe='')}&client_id={client_id}&response_type={response_type}&state={state}&scope={quote(scope, safe='')}", status_code=303)
