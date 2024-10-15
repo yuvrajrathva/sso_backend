@@ -27,6 +27,14 @@ class LoginSchema(BaseModel):
     scope: str
 
 
+class SessionSchema(BaseModel):
+    response_type: str
+    client_id: str
+    state: str
+    redirect_uri: str
+    scope: str
+    
+
 class Token(BaseModel):
     access_token: str
     token_type: str
