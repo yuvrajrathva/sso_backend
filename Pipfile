@@ -4,13 +4,30 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-fastapi = "*"
 sqlalchemy = "*"
-uvicorn = {extras = ["standard"], version = "*"}
 python-dotenv = "*"
 pymysql = "*"
+pyjwt = "*"
+pydantic-settings = "*"
+httpx = "*"
+pytest = "*"
+alembic = "*"
+sib-api-v3-sdk = "*"
+cryptography = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
+
+[packages.uvicorn]
+extras = [ "standard",]
+version = "*"
+
+[packages.passlib]
+extras = [ "bcrypt",]
+version = "*"
+
+[packages.fastapi]
+extras = [ "all",]
+version = "*"

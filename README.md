@@ -19,3 +19,20 @@
      ```
  
 
+
+ 
+## Database Migrations
+
+- Run the following command to create a new migration
+
+    ``` 
+    alembic revision --autogenerate -m "migration message"
+    ```
+
+- Run the following command to apply the migration
+
+    ```
+    alembic upgrade head
+    ```
+
+
