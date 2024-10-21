@@ -79,6 +79,7 @@ class VerificationCode(Base):
     code_expiry = Column(DateTime, nullable=False)
     is_verified = Column(Boolean, default=False)
 
+
 class UserSession(Base):
     __tablename__ = "user_sessions"
 
@@ -97,3 +98,17 @@ class UserSession(Base):
             self.session_expiry = datetime.now() + timedelta(minutes=15)
             self.last_activity = datetime.now()
             self.is_active = True
+
+
+class Scopes(Base):
+    __tablename__ = "scopes"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    scope = Column(String(50), nullable=False)
+    description = Column(String(100), nullable=True)
+
+class ClientScope(Base):
+    __tablename__ = "client_scopes"
+
+    client_id = Column(String(50), ForeignKey("service_providers.client_id"), primary_key=True, index=True)
+    scope_id = Column(Integer, ForeignKey("scopes.id"), primary_key=True, index=True)
