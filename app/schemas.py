@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
-from fastapi import Request
+from fastapi import Request, Depends, Query
+
+from app.utils import JWTBearer
 
 
 class UserSchema(BaseModel):
@@ -49,3 +51,26 @@ class VerifyCode(BaseModel):
 
 class ResendCode(BaseModel):
     email: str
+
+
+class DeveloperLoginSchema(BaseModel):
+    email: str
+    password: str
+
+
+class GetServiceProvidersSchema(BaseModel):
+    service_provider_id: int
+    client_id: str
+    client_secret: str
+    name: str
+    redirect_url: str
+    is_verified: bool
+
+class GetDeveloperDetailsSchema(BaseModel):
+    id: int
+    roll_no: str
+    first_name: str
+    last_name: str
+    email: str
+    phone_number: str
+    is_verified: bool
