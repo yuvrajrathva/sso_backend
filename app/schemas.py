@@ -13,10 +13,11 @@ class UserSchema(BaseModel):
 
 
 class ServiceProviderSchema(BaseModel):
-    client_id: str
     name: str
+    developer_id: int
     redirect_url: str
-    
+
+
 class LoginSchema(BaseModel):
     email: str
     password: str
@@ -33,7 +34,7 @@ class SessionSchema(BaseModel):
     state: str
     redirect_uri: str
     scope: str
-    
+
 
 class Token(BaseModel):
     access_token: str
