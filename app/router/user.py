@@ -88,16 +88,14 @@ def login_endpoint(
     db.add(user_session)
     db.commit()
 
-    # redirect_url = f"{Settings().sso_client_url}/consent?response_type={form_data.response_type}&client_id={form_data.client_id}&state={form_data.state}&scope={quote(form_data.scope)}"
 
-    # print("redirect_url:", redirect_url)
     response_message = {'response_type': form_data.response_type, 
                         'client_id': form_data.client_id, 
                         'state': form_data.state, 
-                        'scope': form_data.scope}
+                        'scope': form_data.scope, 
+                        'session_id': user_session.session_id}
     
     response = JSONResponse(content=response_message, status_code=200)
-    response.set_cookie(key="session_id", value=user_session.session_id, httponly=True, secure=False)
     return response
 
 @router.post("/logout")
