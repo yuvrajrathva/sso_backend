@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from app.utils import authenticate_user, create_access_token, create_refresh_token, create_session, verify_session, get_user_by_id, decode_token, JWTBearer
-from app.schemas import DeveloperLoginSchema, GetDeveloperDetailsSchema, TokenSchema
+from app.schemas import DeveloperLoginSchema, GetDeveloperDetailsSchema
 from fastapi.security import OAuth2PasswordBearer
 from app.database import SessionLocal
 from app.models import User
