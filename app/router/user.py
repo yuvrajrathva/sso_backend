@@ -14,7 +14,7 @@ from app.models import User, VerificationCode, UserSession, ServiceProvider
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
 from app.config import Settings
-from app.utils import authenticate_user, create_access_token, create_session, verify_session
+from app.utils import authenticate_user, verify_session
 
 router = APIRouter()
 

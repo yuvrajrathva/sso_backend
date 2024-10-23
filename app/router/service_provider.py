@@ -44,7 +44,6 @@ def authorize_service_provider(form_data: SessionSchema, request: Request = Requ
 
         print("Session not Valid. Redirecting to:", redirect_uri)
         return RedirectResponse(redirect_uri, status_code=303)
-    
 
     service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == form_data.client_id).first()
     if not service_provider:

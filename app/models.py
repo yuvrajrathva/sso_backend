@@ -8,10 +8,11 @@ from datetime import datetime, timedelta
 class User(Base):
     __tablename__ = "users"
 
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     roll_no = Column(String(11), unique=True)
     first_name = Column(String(20))
     last_name = Column(String(20))
-    email = Column(String(50), primary_key=True, index=True)
+    email = Column(String(50), unique=True, index=True)
     password = Column(String(100))
     phone_number = Column(String(10))
     is_verified = Column(Boolean, default=False)
@@ -36,14 +37,16 @@ class User(Base):
         if not any(char.islower() for char in self.password):
             raise ValueError("Password must contain at least one lowercase letter")
         if not any(not char.isalnum() for char in self.password):
-            raise ValueError("Password must contain at least one special charater")
+            raise ValueError("Password must contain at least one special character")
         return True
 
 
 class ServiceProvider(Base):
     __tablename__ = "service_providers"
 
-    client_id = Column(String(50), primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    developer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    client_id = Column(String(50), unique=True)
     client_secret = Column(String(100), unique=True) 
     name = Column(String(100))
     redirect_url = Column(String(200))
@@ -53,7 +56,7 @@ class ServiceProvider(Base):
         super().__init__(**kwargs)
         if not self.client_id:
             self.client_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-            
+
             # Use a session to query the database
             session = kwargs.get('session')
             if session:
@@ -79,11 +82,12 @@ class VerificationCode(Base):
     code_expiry = Column(DateTime, nullable=False)
     is_verified = Column(Boolean, default=False)
 
+
 class UserSession(Base):
     __tablename__ = "user_sessions"
 
     session_id = Column(String(6), primary_key=True, nullable=False)
-    email = Column(String(50), ForeignKey("users.email"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_expiry = Column(DateTime, nullable=False)
     last_activity = Column(DateTime, nullable=False)
     session_created = Column(DateTime, nullable=False)
@@ -97,3 +101,18 @@ class UserSession(Base):
             self.session_expiry = datetime.now() + timedelta(minutes=15)
             self.last_activity = datetime.now()
             self.is_active = True
+
+
+class Scope(Base):
+    __tablename__ = "scopes"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    scope = Column(String(50), nullable=False)
+    description = Column(String(100), nullable=True)
+
+
+class ClientScope(Base):
+    __tablename__ = "client_scopes"
+
+    client_id = Column(String(50), ForeignKey("service_providers.client_id"), primary_key=True, index=True)
+    scope_id = Column(Integer, ForeignKey("scopes.id"), primary_key=True, index=True)
