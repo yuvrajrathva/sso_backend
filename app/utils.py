@@ -154,14 +154,13 @@ def create_session(db, email: str):
     return session_id
 
 
-def verify_session(db, request):
-    print("Cookies:", request.cookies)
-    if "session_id" in request.cookies:
-        user_session_id = request.cookies.get("session_id")
-    else:
+def verify_session(db, request: Request):
+    session_id = request.headers.get("session_id")
+    print("session_id:", session_id)
+    if not session_id:
         return False
     
-    session = db.query(UserSession).filter(UserSession.session_id == user_session_id).first()
+    session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
     if not session or session.session_expiry < datetime.now() or not session.is_active:
         return False
     return True
