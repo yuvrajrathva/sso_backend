@@ -1,11 +1,13 @@
 import random
 from passlib.context import CryptContext
 import jwt
+from sqlalchemy.orm import Session
 from fastapi import HTTPException, Request, status, Depends
 from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta
 from typing import Union, Optional
 from app.config import Settings
+from app.router.user import get_db
 from app.models import User, UserSession, ServiceProvider
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -45,6 +47,31 @@ class JWTBearer(HTTPBearer):
         except jwt.JWTError:
             return False
 
+
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(JWTBearer())) -> User:
+    """
+    Get current user from JWT token
+    """
+    payload = decode_token(token)
+    if not payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token or expired token",
+        )
+    user_id = payload.get("sub")
+    if not user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token or expired token",
+        )
+
+    user = get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    return user
 
 def hash_password(password: str):
     return pwd_context.hash(password)

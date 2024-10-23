@@ -4,18 +4,18 @@ from sqlalchemy.orm import Session
 from typing import List
 from urllib.parse import quote
 
-from app.models import ServiceProvider
+from app.models import ServiceProvider, User
 from app.schemas import ServiceProviderSchema, SessionSchema
 from app.config import Settings
-from app.router.user import get_db
-from app.utils import generate_authorization_code, verify_session
+from app.database import get_db
+from app.utils import generate_authorization_code, verify_session, get_current_user
 from fastapi.responses import RedirectResponse, JSONResponse
 
 router = APIRouter()
 
 
 @router.get("/", response_model=List[ServiceProviderSchema])
-def read_service_providers(db: Session = Depends(get_db)):
+def read_service_providers(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     service_providers = db.query(ServiceProvider).all()
     return service_providers
 

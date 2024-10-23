@@ -1,19 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from app.utils import authenticate_user, create_access_token, create_refresh_token, create_session, verify_session, get_user_by_id, decode_token, JWTBearer
+from app.utils import authenticate_user, create_access_token, create_refresh_token, create_session, verify_session, get_user_by_id, decode_token, JWTBearer, get_current_user
 from app.schemas import DeveloperLoginSchema, GetDeveloperDetailsSchema
-from app.database import SessionLocal
 from app.models import User
+from app.database import get_db
 
 router = APIRouter()
-
-def get_db():
-    db = SessionLocal()
-    try : 
-        yield db
-    finally:
-        db.close()
 
 @router.post("/login/")
 def login_endpoint(
@@ -32,31 +25,6 @@ def login_endpoint(
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
-
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(JWTBearer())) -> User:
-    """
-    Get current user from JWT token
-    """
-    payload = decode_token(token)
-    if not payload:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token or expired token",
-        )
-    user_id = payload.get("sub")
-    if not user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid token or expired token",
-        )
-
-    user = get_user_by_id(db, user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
-    return user
 
 
 @router.get("/get-user/", response_model=GetDeveloperDetailsSchema)
