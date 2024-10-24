@@ -76,7 +76,7 @@ def login_endpoint(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    user_session = UserSession(email=user.email)
+    user_session = UserSession(user_id=user.id)
     db.add(user_session)
     db.commit()
 
