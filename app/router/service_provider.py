@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from typing import List
 from urllib.parse import quote
 
-from app.models import ServiceProvider, User
-from app.schemas import ServiceProviderSchema, SessionSchema
+from app.models import ServiceProvider, User, ClientScope
+from app.schemas import ServiceProviderSchema, SessionSchema, GetServiceProviderDetailsSchema
 from app.config import Settings
 from app.database import get_db
 from app.utils import generate_authorization_code, verify_session, get_current_user
@@ -14,9 +14,9 @@ from fastapi.responses import RedirectResponse, JSONResponse
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ServiceProviderSchema])
+@router.get("/credentials", response_model=List[GetServiceProviderDetailsSchema])
 def read_service_providers(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    service_providers = db.query(ServiceProvider).all()
+    service_providers = db.query(ServiceProvider).filter(ServiceProvider.developer_id == current_user.id).order_by(ServiceProvider.created_at).all()
     return service_providers
 
 
@@ -28,10 +28,20 @@ def create_service_provider(service_provider: ServiceProviderSchema, db: Session
     ).first()
     if db_service_provider:
         raise HTTPException(status_code=400, detail='Service Provider already registered')
-    db_service_provider = ServiceProvider(**service_provider.dict(), session=db)
+    db_service_provider = ServiceProvider(
+        name=service_provider.name,
+        developer_id=service_provider.developer_id,
+        redirect_url=service_provider.redirect_url,
+    )
     db.add(db_service_provider)
     db.commit()
     db.refresh(db_service_provider)
+
+    for scopeId in service_provider.scope:
+        db_client_scope = ClientScope(service_provider_id=db_service_provider.id, scope_id=scopeId)
+        db.add(db_client_scope)
+    db.commit()
+
     return db_service_provider
 
 

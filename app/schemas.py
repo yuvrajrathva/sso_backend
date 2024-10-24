@@ -1,7 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import Request, Depends, Query
-
+from datetime import datetime
+from typing import List
 from app.utils import JWTBearer
 
 
@@ -18,6 +19,17 @@ class ServiceProviderSchema(BaseModel):
     name: str
     developer_id: int
     redirect_url: str
+    scope: List[int]
+
+
+class GetServiceProviderDetailsSchema(BaseModel):
+    id: int
+    name: str
+    created_at: datetime
+    client_id: str
+    client_secret: str
+    redirect_url: str
+    is_verified: bool
 
 
 class LoginSchema(BaseModel):

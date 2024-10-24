@@ -4,6 +4,7 @@ import re
 import random
 import string
 from datetime import datetime, timedelta
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -51,6 +52,9 @@ class ServiceProvider(Base):
     name = Column(String(100))
     redirect_url = Column(String(200))
     is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now())
+
+    scopes = relationship("Scope", secondary="client_scopes", back_populates="service_providers")
 
     def __init__(self, session=None, **kwargs):
         super().__init__(**kwargs)
@@ -110,9 +114,11 @@ class Scope(Base):
     scope = Column(String(50), nullable=False)
     description = Column(String(100), nullable=True)
 
+    service_providers = relationship("ServiceProvider", secondary="client_scopes", back_populates="scopes")
+
 
 class ClientScope(Base):
     __tablename__ = "client_scopes"
 
-    client_id = Column(String(50), ForeignKey("service_providers.client_id"), primary_key=True, index=True)
+    service_provider_id = Column(Integer, ForeignKey("service_providers.id"), primary_key=True, index=True)
     scope_id = Column(Integer, ForeignKey("scopes.id"), primary_key=True, index=True)
