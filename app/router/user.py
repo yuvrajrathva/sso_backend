@@ -8,8 +8,8 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Annotated
 from urllib.parse import quote
 
-from app.database import SessionLocal
 from app.schemas import Token, SessionSchema
+from app.database import get_db
 from app.models import User, VerificationCode, UserSession, ServiceProvider
 from app.schemas import UserSchema, VerifyCode, ResendCode, LoginSchema
 from app.crud import create_user, get_all_users, resend_verification_code
@@ -17,14 +17,6 @@ from app.config import Settings
 from app.utils import authenticate_user, verify_session
 
 router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try : 
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("/", response_model=List[UserSchema])
