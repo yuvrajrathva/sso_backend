@@ -30,6 +30,7 @@ class GetServiceProviderDetailsSchema(BaseModel):
     client_secret: str
     redirect_url: str
     is_verified: bool
+    scopes: List[str]
 
 
 class LoginSchema(BaseModel):
