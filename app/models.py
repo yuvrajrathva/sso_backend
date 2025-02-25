@@ -4,14 +4,17 @@ import re
 import random
 import string
 from datetime import datetime, timedelta
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql.schema import PrimaryKeyConstraint
 
 class User(Base):
     __tablename__ = "users"
 
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     roll_no = Column(String(11), unique=True)
     first_name = Column(String(20))
     last_name = Column(String(20))
-    email = Column(String(50), primary_key=True, index=True)
+    email = Column(String(50), unique=True, index=True)
     password = Column(String(100))
     phone_number = Column(String(10))
     is_verified = Column(Boolean, default=False)
@@ -36,24 +39,29 @@ class User(Base):
         if not any(char.islower() for char in self.password):
             raise ValueError("Password must contain at least one lowercase letter")
         if not any(not char.isalnum() for char in self.password):
-            raise ValueError("Password must contain at least one special charater")
+            raise ValueError("Password must contain at least one special character")
         return True
 
 
 class ServiceProvider(Base):
     __tablename__ = "service_providers"
 
-    client_id = Column(String(50), primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    developer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    client_id = Column(String(50), unique=True)
     client_secret = Column(String(100), unique=True) 
     name = Column(String(100))
     redirect_url = Column(String(200))
     is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now())
+
+    scopes = relationship("Scope", secondary="client_scopes", back_populates="service_providers")
 
     def __init__(self, session=None, **kwargs):
         super().__init__(**kwargs)
         if not self.client_id:
             self.client_id = ''.join(random.choices(string.ascii_lowercase + string.digits, k=12))
-            
+
             # Use a session to query the database
             session = kwargs.get('session')
             if session:
@@ -79,11 +87,12 @@ class VerificationCode(Base):
     code_expiry = Column(DateTime, nullable=False)
     is_verified = Column(Boolean, default=False)
 
+
 class UserSession(Base):
     __tablename__ = "user_sessions"
 
     session_id = Column(String(6), primary_key=True, nullable=False)
-    email = Column(String(50), ForeignKey("users.email"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     session_expiry = Column(DateTime, nullable=False)
     last_activity = Column(DateTime, nullable=False)
     session_created = Column(DateTime, nullable=False)
@@ -97,3 +106,59 @@ class UserSession(Base):
             self.session_expiry = datetime.now() + timedelta(minutes=15)
             self.last_activity = datetime.now()
             self.is_active = True
+
+
+class Scope(Base):
+    __tablename__ = "scopes"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    scope = Column(String(50), nullable=False)
+    description = Column(String(100), nullable=True)
+
+    service_providers = relationship("ServiceProvider", secondary="client_scopes", back_populates="scopes")
+
+
+class ClientScope(Base):
+    __tablename__ = "client_scopes"
+
+    service_provider_id = Column(Integer, ForeignKey("service_providers.id"), primary_key=True, index=True)
+    scope_id = Column(Integer, ForeignKey("scopes.id"), primary_key=True, index=True)
+    
+    __table_args__ = (
+        PrimaryKeyConstraint('service_provider_id', 'scope_id'),
+    )
+
+
+class UserConsent(Base):
+    __tablename__ = "user_consents"
+    
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True, index=True)
+    service_provider_id = Column(Integer, ForeignKey("service_providers.id"), primary_key=True, index=True)
+    scope_id = Column(Integer, ForeignKey("scopes.id"), primary_key=True, index=True)
+    consent_time = Column(DateTime, default=datetime.now())
+
+    __table_args__ = (
+        PrimaryKeyConstraint('user_id', 'service_provider_id', 'scope_id'),
+    )
+
+
+class AuthorizationCode(Base):
+    __tablename__ = "authorization_codes"
+    
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    code = Column(String(50), nullable=False, unique=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    service_provider_id = Column(Integer, ForeignKey("service_providers.id"), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        if not self.code:
+            self.code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
+            session = kwargs.get('session')
+            if session:
+                while session.query(self.__class__).filter_by(code=self.code).first() is not None:
+                    self.code = ''.join(random.choices(string.ascii_lowercase + string.digits, k=20))
+            self.expires_at = datetime.now() + timedelta(minutes=15)

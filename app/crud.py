@@ -7,7 +7,7 @@ import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
 from app.models import User, ServiceProvider, VerificationCode
-from app.schemas import UserSchema, ServiceProviderSchema
+from app.schemas import UserSchema
 from app.utils import hash_password
 
 

@@ -1,0 +1,47 @@
+sqlalchemy.engine.Engine - INFO - SELECT DATABASE()
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - SELECT @@sql_mode
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - SELECT @@lower_case_table_names
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`users`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`service_providers`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`verification_codes`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`user_sessions`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`scopes`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`client_scopes`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - DESCRIBE `sso`.`user_consents`
+sqlalchemy.engine.Engine - INFO - [raw sql] {}
+sqlalchemy.engine.Engine - INFO - COMMIT
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT users.id AS users_id, users.roll_no AS users_roll_no, users.first_name AS users_first_name, users.last_name AS users_last_name, users.email AS users_email, users.password AS users_password, users.phone_number AS users_phone_number, users.is_verified AS users_is_verified 
+FROM users 
+WHERE users.email = %(email_1)s 
+ LIMIT %(param_1)s
+sqlalchemy.engine.Engine - INFO - [generated in 0.00180s] {'email_1': 'kori.1@iitj.ac.in', 'param_1': 1}
+passlib.handlers.bcrypt - WARNING - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "C:\Users\HP\.virtualenvs\sso_backend-rIn2eKt4\lib\site-packages\passlib\handlers\bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+AttributeError: module 'bcrypt' has no attribute '__about__'
+sqlalchemy.engine.Engine - INFO - SELECT service_providers.id AS service_providers_id, service_providers.developer_id AS service_providers_developer_id, service_providers.client_id AS service_providers_client_id, service_providers.client_secret AS service_providers_client_secret, service_providers.name AS service_providers_name, service_providers.redirect_url AS service_providers_redirect_url, service_providers.is_verified AS service_providers_is_verified, service_providers.created_at AS service_providers_created_at 
+FROM service_providers 
+WHERE service_providers.client_id = %(client_id_1)s 
+ LIMIT %(param_1)s
+sqlalchemy.engine.Engine - INFO - [generated in 0.00408s] {'client_id_1': 'u9cyvtcfw0pm', 'param_1': 1}
+sqlalchemy.engine.Engine - INFO - INSERT INTO user_sessions (session_id, user_id, session_expiry, last_activity, session_created, is_active) VALUES (%(session_id)s, %(user_id)s, %(session_expiry)s, %(last_activity)s, %(session_created)s, %(is_active)s)
+sqlalchemy.engine.Engine - INFO - [generated in 0.00125s] {'session_id': '652753', 'user_id': 1, 'session_expiry': datetime.datetime(2024, 10, 25, 21, 59, 52, 214279), 'last_activity': datetime.datetime(2024, 10, 25, 21, 44, 52, 214279), 'session_created': datetime.datetime(2024, 10, 25, 21, 44, 52, 214279), 'is_active': 1}
+sqlalchemy.engine.Engine - INFO - COMMIT
+sqlalchemy.engine.Engine - INFO - BEGIN (implicit)
+sqlalchemy.engine.Engine - INFO - SELECT user_sessions.session_id AS user_sessions_session_id, user_sessions.user_id AS user_sessions_user_id, user_sessions.session_expiry AS user_sessions_session_expiry, user_sessions.last_activity AS user_sessions_last_activity, user_sessions.session_created AS user_sessions_session_created, user_sessions.is_active AS user_sessions_is_active 
+FROM user_sessions 
+WHERE user_sessions.session_id = %(pk_1)s
+sqlalchemy.engine.Engine - INFO - [generated in 0.00215s] {'pk_1': '652753'}
+sqlalchemy.engine.Engine - INFO - ROLLBACK

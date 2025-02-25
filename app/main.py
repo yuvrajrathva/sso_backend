@@ -5,7 +5,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 from app.database import engine, Base
 from app.config import Settings
-from app.router import user, service_provider
+from app.router import user, service_provider, developer, api
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -17,7 +17,7 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,5 +31,5 @@ def get_settings():
 
 app.include_router(user.router, prefix="/user", tags=["user"])
 app.include_router(service_provider.router, prefix="/service-provider", tags=["service-provider"])
-
-
+app.include_router(developer.router, prefix="/developer", tags=["developer"])
+app.include_router(api.router, prefix="/api", tags=["api"])
