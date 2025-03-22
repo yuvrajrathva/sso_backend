@@ -7,6 +7,7 @@ from jwt.exceptions import InvalidTokenError
 from datetime import datetime, timedelta
 from typing import Union, Optional
 from app.config import Settings
+
 from app.database import get_db
 from app.models import User, UserSession, ServiceProvider, UserConsent, Scope, AuthorizationCode
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
