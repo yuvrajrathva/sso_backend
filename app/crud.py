@@ -46,7 +46,7 @@ def create_user(db: Session, user: UserSchema):
     try:
         user.validate_email()
         user.validate_phone_number()
-        user.validate_password()
+        # user.validate_password()
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -54,12 +54,12 @@ def create_user(db: Session, user: UserSchema):
     db.commit()
     db.refresh(user)
 
-    verification_code = generate_verification_code()
-    verification_code = VerificationCode(email=user.email, code=verification_code, code_expiry=datetime.now() + timedelta(minutes=15), is_verified=False)
-    db.add(verification_code)
-    db.commit()
+    # verification_code = generate_verification_code()
+    # verification_code = VerificationCode(email=user.email, code=verification_code, code_expiry=datetime.now() + timedelta(minutes=15), is_verified=False)
+    # db.add(verification_code)
+    # db.commit()
 
-    send_verification_code(user.email, verification_code.code)
+    # send_verification_code(user.email, verification_code.code)
 
     return user
 

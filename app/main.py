@@ -5,7 +5,7 @@ from functools import lru_cache
 from dotenv import load_dotenv
 from app.database import engine, Base
 from app.config import Settings
-from app.router import user, service_provider, developer, api
+from app.router import user, service_provider, developer, api, consent
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -33,3 +33,4 @@ app.include_router(user.router, prefix="/user", tags=["user"])
 app.include_router(service_provider.router, prefix="/service-provider", tags=["service-provider"])
 app.include_router(developer.router, prefix="/developer", tags=["developer"])
 app.include_router(api.router, prefix="/api", tags=["api"])
+app.include_router(consent.router, prefix="/consent", tags=["consent"])

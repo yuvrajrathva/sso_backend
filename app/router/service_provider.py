@@ -12,34 +12,72 @@ from fastapi.responses import RedirectResponse, JSONResponse
 
 router = APIRouter()
 
+# @router.post("/create/")
+# def create_service_provider(service_provider: CreateServiceProviderSchema, db: Session = Depends(get_db)):
+#     db_service_provider = db.query(ServiceProvider).filter(
+#         (ServiceProvider.name == service_provider.name) &
+#         (ServiceProvider.developer_id == service_provider.developer_id)
+#     ).first()
+#     print("db_service_provider", db_service_provider)
+#     if db_service_provider:
+#         raise HTTPException(status_code=400, detail='Service Provider already registered with this name')
+
+#     db_service_provider = ServiceProvider(
+#         name=service_provider.name,
+#         developer_id=service_provider.developer_id,
+#         redirect_url=service_provider.redirect_url,
+#     )
+#     db.add(db_service_provider)
+#     db.commit()
+#     db.refresh(db_service_provider)
+
+#     for scopeName in service_provider.scopes:
+#         scope = db.query(Scope).filter(Scope.scope == scopeName).first()
+#         if not scope:
+#             pass
+#         db_client_scope = ClientScope(service_provider_id=db_service_provider.id, scope_id=scope.id)
+#         db.add(db_client_scope)
+#     db.commit()
+
+#     return db_service_provider
+
 @router.post("/create/")
 def create_service_provider(service_provider: CreateServiceProviderSchema, db: Session = Depends(get_db)):
     db_service_provider = db.query(ServiceProvider).filter(
-        (ServiceProvider.name == service_provider.name) &
+        (ServiceProvider.name == service_provider.name) & 
         (ServiceProvider.developer_id == service_provider.developer_id)
     ).first()
-    print("db_service_provider", db_service_provider)
+    
     if db_service_provider:
-        raise HTTPException(status_code=400, detail='Service Provider already registered with this name')
-
+        raise HTTPException(status_code=400, detail="Service Provider already registered with this name")
+    
+    # Create Service Provider
     db_service_provider = ServiceProvider(
         name=service_provider.name,
         developer_id=service_provider.developer_id,
-        redirect_url=service_provider.redirect_url,
+        redirect_url=service_provider.redirect_url
     )
     db.add(db_service_provider)
-    db.commit()
-    db.refresh(db_service_provider)
+    db.flush()  # Ensure the ID is assigned before adding scopes
+    print("Service Provider ID:", db_service_provider.id)  # Debugging
 
+    # Store the scopes
+    client_scope_entries = []
     for scopeName in service_provider.scopes:
         scope = db.query(Scope).filter(Scope.scope == scopeName).first()
         if not scope:
-            pass
-        db_client_scope = ClientScope(service_provider_id=db_service_provider.id, scope_id=scope.id)
-        db.add(db_client_scope)
+            raise HTTPException(status_code=400, detail=f"Scope '{scopeName}' not found")
+        
+        client_scope_entries.append(ClientScope(service_provider_id=db_service_provider.id, scope_id=scope.id))
+    
+    if client_scope_entries:
+        db.add_all(client_scope_entries)
+
     db.commit()
+    db.refresh(db_service_provider)
 
     return db_service_provider
+
 
 
 @router.post("/authorize/")

@@ -97,3 +97,7 @@ class PostTokenSchema(BaseModel):
     auth_code: str
     grant_type: str
     redirect_url: str
+
+class GetUserConsentResponseSchema(BaseModel):
+    user_id: int
+    approved_services: List[dict]
