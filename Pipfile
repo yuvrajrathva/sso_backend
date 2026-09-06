@@ -14,20 +14,11 @@ pytest = "*"
 alembic = "*"
 sib-api-v3-sdk = "*"
 cryptography = "*"
+uvicorn = {extras = [ "standard",], version = "*"}
+passlib = {extras = [ "bcrypt",], version = "*"}
+fastapi = "*"
 
 [dev-packages]
 
 [requires]
 python_version = "3.8"
-
-[packages.uvicorn]
-extras = [ "standard",]
-version = "*"
-
-[packages.passlib]
-extras = [ "bcrypt",]
-version = "*"
-
-[packages.fastapi]
-extras = [ "all",]
-version = "*"
