@@ -107,7 +107,7 @@ def verify_password(password: str, hashed_password: str):
 
 
 def get_user(db, email: str):
-    print(db)
+    # print(db)
     user = db.query(User).filter(User.email == email).first()
     print("user:", user)
     return user
@@ -186,14 +186,14 @@ def create_session(db, email: str):
 
 def verify_session(db, request: Request):
     session_id = request.headers.get("session_id")
-    print("session_id:", session_id)
+    # print("session_id:", session_id)
     if not session_id:
-        return False
-    
+        return None
+
     session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
     if not session or session.session_expiry < datetime.now() or not session.is_active:
-        return False
-    return True
+        return None
+    return session
 
 
 def user_consent(db, form_data,  request: Request):

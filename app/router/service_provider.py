@@ -45,7 +45,7 @@ def create_service_provider(service_provider: CreateServiceProviderSchema, db: S
 @router.post("/authorize/")
 def authorize_service_provider(form_data: SessionSchema, request: Request = Request, db: Session = Depends(get_db)):
     session = verify_session(db, request)
-    if not session:
+    if session is None:
         redirect_url = f"{Settings().sso_client_url}/login?redirect_url={quote(form_data.redirect_url, safe='')}"
         redirect_url += f"&client_id={form_data.client_id}&response_type={form_data.response_type}&state={form_data.state}&scope={quote(form_data.scope, safe='')}"
 
@@ -61,8 +61,8 @@ def authorize_service_provider(form_data: SessionSchema, request: Request = Requ
     if form_data.response_type != 'code':
         raise HTTPException(status_code=400, detail='Unsupported response_type')
     
-    session_id = request.headers.get("session_id")
-    session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
+    # session_id = request.headers.get("session_id")
+    # session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
 
     authorization_code = generate_authorization_code(db, session.user_id, form_data.client_id)
 

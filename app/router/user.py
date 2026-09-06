@@ -41,8 +41,8 @@ async def session_verification(
     db: Session = Depends(get_db)
 ):
     session = verify_session(db, request)
-    print("Session:", session)
-    if not session:
+    # print("Session:", session)
+    if session is None:
         return RedirectResponse(f"{Settings().sso_client_url}/login?redirect_url={quote(form_data.redirect_url, safe='')}&client_id={form_data.client_id}&response_type={form_data.response_type}&state={form_data.state}&scope={quote(form_data.scope, safe='')}", status_code=303)
     
     service_provider = db.query(ServiceProvider).filter(ServiceProvider.client_id == form_data.client_id).first()
@@ -55,8 +55,8 @@ async def session_verification(
     if service_provider.redirect_url != form_data.redirect_url:
         raise HTTPException(status_code=400, detail='Invalid redirect_url')
     
-    session_id = request.headers.get("session_id")
-    session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
+    # session_id = request.headers.get("session_id")
+    # session = db.query(UserSession).filter(UserSession.session_id == session_id).first()
 
     if verify_consent(db, form_data.client_id, session.user_id):
         authorization_code = generate_authorization_code(db, session.user_id, form_data.client_id)

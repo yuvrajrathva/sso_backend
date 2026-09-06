@@ -46,7 +46,7 @@ def token_endpoint(form_data: PostTokenSchema, request: Request, db: Session = D
         return JSONResponse(content=response, status_code=200)
     else:
         raise HTTPException(status_code=400, detail="Invalid Authorization header")
-    
+
 
 @router.get("/token/refresh/")
 def refresh_token_endpoint(
